@@ -28,46 +28,77 @@ def connect_db(config):
             print(err)
     return cnx
 
+
 def convert_str2date(ym_str):
-    return datetime.datetime.strptime(ym_str,'%Y-%M').date()
+    return datetime.datetime.strptime(ym_str, '%Y-%M').date()
+
+
+def format_dict(json_dict):
+    json_dict['pubdate'] = convert_str2date(json_dict['pubdate'])
+    json_dict['author'] = ', '.join(json_dict['author'])
+    json_dict['translator'] = ', '.join(json_dict['translator'])
+    json_dict['image'] = json_dict['images']['large']
+    dot = json_dict['price'].find('.')
+    json_dict['price'] = float(json_dict['price'][0: dot+2])
+    if json_dict['binding'] == '平装':
+        json_dict['binding'] = '0'
+    elif json_dict['binding'] == '精装':
+        json_dict['binding'] = '1'
+    else:
+        json_dict['binding'] = '2'
+
+    del json_dict['rating']
+    del json_dict['tags']
+    del json_dict['images']
+    return json_dict
+
 
 cnx = connect_db(db_conf)
 cursor = cnx.cursor()
 sql_add = ("INSERT INTO t_book "
-              "(emp_no, salary, from_date, to_date) "
-              "VALUES (%(emp_no)s, %(salary)s, %(from_date)s, %(to_date)s)")
-emp_no = cursor.lastrowid
-# Insert salary information
-# data_salary = {
-#   'emp_no': emp_no,
-#   'salary': 50000,
-#   'from_date': tomorrow,
-#   'to_date': date(9999, 1, 1),
-# }
-cursor.execute(add_salary, data_salary)
-# Make sure data is committed to the database
+        "(id, isbn10, isbn13, title, origin_title, "
+        "alt_title, subtitle, url, image,"
+        "author, translator, publisher, pubdate, binding, "
+        "price, pages, author_intro, summary) "
+        "VALUES ( "
+        "%(id)s, %(isbn10)s, %(isbn13)s, %(title)s, %(origin_title)s,"
+        "%(alt_title)s, %(subtitle)s, %(url)s, %(image)s, "
+        "%(author)s, %(translator)s, %(publisher)s, %(pubdate)s, %(binding)s, "
+        "%(price)s, %(pages)s, %(author_intro)s, %(summary)s)")
+print(sql_add)
+h = httplib2.Http('.cache')
+bid = 1220562
+resp, content = h.request('https://api.douban.com/v2/book/' + str(bid))
+if resp.status == 200:
+    b_str = content.decode('utf-8')
+    b_dict = json.loads(b_str)
+    b_dict = format_dict(b_dict)
+    for x, y in b_dict.items():
+#        if not isinstance(y, str):
+        print('type:', x, type(y))
+        print(x, y)
+#            print()
+    cursor.execute(sql_add, b_dict)
+# Make sure datas is committed to the database
 cnx.commit()
 cursor.close()
 cnx.close()
 
 
-def save_db(b_dict):
+def save_db(b_disct):
     pass
 
 
-# httplib2.debuglevel = 1
-h = httplib2.Http('.cache')
-bid = 1220562
-while bid < 1220600:
-    resp, content = h.request('https://api.douban.com/v2/book/' + str(bid))
-    if resp.status == 200:
-        b_str = content.decode('utf-8')
-        b_dict = json.loads(b_str)
+# httplib2.debugslevel = 1
+#h = httplib2.Http('.cache')
+#bid = 1220562
+#while bid < 1220600:
+#    resp, content = h.request('https://api.douban.com/v2/book/' + str(bid))
+#    if resp.status == 200:
+#        b_str = content.decode('utf-8')
+#        b_dict = json.loads(b_str)
+#
+#    bid = bid + 1
 
-    bid = bid + 1
-
-
-
-
-cnx.close()
+#cnx.close()
 print('end')
