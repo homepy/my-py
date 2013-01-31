@@ -7,7 +7,7 @@ import mysql.connector
 from mysql.connector import errorcode
 
 
-db_conf = {
+DB_CONF = {
     'user': 'root',
     'password': '`',
     'host': '127.0.0.1',
@@ -59,7 +59,7 @@ def format_book_dict(book_dict):
     return book_dict
 
 
-cnx = connect_db(db_conf)
+cnx = connect_db(DB_CONF)
 cursor = cnx.cursor()   # 游标
 sql_add = ("INSERT INTO t_book "
            "(id, isbn10, isbn13, title, origin_title, "

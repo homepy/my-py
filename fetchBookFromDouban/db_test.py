@@ -3,11 +3,11 @@ import mysql.connector
 from mysql.connector import errorcode
 
 
-db_conf = {
+DB_CONF = {
     'user': 'root',
     'password': '`',
     'host': 'localhost',
-    'port':3306,
+    'port': 3306,
     'database': 'library',
     'raise_on_warnings': True,
 }
@@ -25,7 +25,7 @@ def connect_db(config):
             print(err)
     return cnx
 
-cnx = connect_db(db_conf)
+cnx = connect_db(DB_CONF)
 
 #cnx.close()
 print('end')
