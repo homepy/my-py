@@ -1,0 +1,6 @@
+name: py-wechat
+version: 1
+
+libraries:
+- name: webpy
+  version: "0.36"
